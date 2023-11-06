@@ -134,11 +134,12 @@ type virtualClock struct {
 
 // Instance describes the metadata's instance attributes/keys.
 type Instance struct {
-	ID                json.Number
-	MachineType       string
-	Attributes        Attributes
-	NetworkInterfaces []NetworkInterfaces
-	VirtualClock      virtualClock
+	ID                    json.Number
+	MachineType           string
+	Attributes            Attributes
+	NetworkInterfaces     []NetworkInterfaces
+	VlanNetworkInterfaces []VlanNetworkInterfaces
+	VirtualClock          virtualClock
 }
 
 // NetworkInterfaces describes the instances network interfaces configurations.
@@ -149,6 +150,15 @@ type NetworkInterfaces struct {
 	IPAliases         []string
 	Mac               string
 	DHCPv6Refresh     string
+}
+
+// VlanNetworkInterfaces describes the instances vlan network interfaces configurations.
+type VlanNetworkInterfaces struct {
+	ForwardedIps []string
+	Mac          string
+	Ip           string
+	Mtu          json.Number
+	Vlan         json.Number
 }
 
 // Project describes the projects instance's attributes.

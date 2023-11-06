@@ -117,6 +117,8 @@ func TestAddressDiff(t *testing.T) {
 		{"disabled in instance metadata only", []byte(""), &metadata.Descriptor{Instance: metadata.Instance{Attributes: metadata.Attributes{EnableWSFC: mkptr(false)}}}, false},
 		{"enabled in instance metadata, disabled in project metadata", []byte(""), &metadata.Descriptor{Instance: metadata.Instance{Attributes: metadata.Attributes{EnableWSFC: mkptr(true)}}, Project: metadata.Project{Attributes: metadata.Attributes{EnableWSFC: mkptr(false)}}}, true},
 		{"disabled in project metadata only", []byte(""), &metadata.Descriptor{Project: metadata.Project{Attributes: metadata.Attributes{EnableWSFC: mkptr(false)}}}, false},
+		{"network interfaces diff", []byte(""), &metadata.Descriptor{Instance: metadata.Instance{NetworkInterfaces: []metadata.NetworkInterfaces{}}}, true},
+		{"vlan network interfaces diff", []byte(""), &metadata.Descriptor{Instance: metadata.Instance{VlanNetworkInterfaces: []metadata.VlanNetworkInterfaces{}}}, true},
 	}
 
 	ctx := context.Background()

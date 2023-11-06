@@ -252,6 +252,7 @@ func (a *addressMgr) Diff(ctx context.Context) (bool, error) {
 	wsfcEnable := a.parseWSFCEnable(config)
 
 	diff := !reflect.DeepEqual(newMetadata.Instance.NetworkInterfaces, oldMetadata.Instance.NetworkInterfaces) ||
+		!reflect.DeepEqual(newMetadata.Instance.VlanNetworkInterfaces, oldMetadata.Instance.VlanNetworkInterfaces) ||
 		wsfcEnable != oldWSFCEnable || wsfcAddresses != oldWSFCAddresses
 
 	oldWSFCAddresses = wsfcAddresses
