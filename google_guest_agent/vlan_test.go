@@ -41,24 +41,22 @@ func (v *vlanTesting) runWithOutput(ctx context.Context, name string, args ...st
 	return &run.Result{ExitCode: exitCode, StdOut: stdOut}
 }
 
-func TestVlanSupported(t *testing.T) {
+func TestVlanNotSupportedSuccess(t *testing.T) {
 	ctx := context.Background()
-	vlan := &vlan{}
 	vt := &vlanTesting{}
-	res := vlan.vlanSupported(ctx, vt)
-	if !res {
-		t.Errorf("vlan.vlanSupported() got: %v, want: true", res)
+	res := vlanNotSupported(ctx, vt)
+	if res {
+		t.Errorf("vlanNotSupported() got: %v, want: true", res)
 	}
 }
 
-func TestVlanNotSupported(t *testing.T) {
+func TestVlanNotSupportedFailure(t *testing.T) {
 	ctx := context.Background()
-	vlan := &vlan{}
 	vt := &vlanTesting{}
 	exitCode = 1
-	res := vlan.vlanSupported(ctx, vt)
-	if res {
-		t.Errorf("vlan.vlanSupported() got: %v, want: false", res)
+	res := vlanNotSupported(ctx, vt)
+	if !res {
+		t.Errorf("vlanNotSupported() got: %v, want: false", res)
 	}
 }
 
@@ -117,19 +115,18 @@ func TestGetLocalVlanConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("getLocalVlanConfig: %s", tt.name), func(t *testing.T) {
 			ctx := context.Background()
-			vlan := &vlan{}
 			vt := &vlanTesting{}
 			exitCode = tt.exit
 			stdOut = tt.out
-			local, err := vlan.getLocalVlanConfig(ctx, vt)
+			local, err := getLocalVlanConfig(ctx, vt)
 			if err != nil && tt.want != nil {
-				t.Errorf("vlan.getLocalVlanConfig() got an error: %v", err)
+				t.Errorf("getLocalVlanConfig() got an error: %v", err)
 			}
 			if err == nil && tt.want == nil {
-				t.Errorf("vlan.getLocalVlanConfig() expected an error")
+				t.Errorf("getLocalVlanConfig() expected an error")
 			}
 			if !reflect.DeepEqual(local, tt.want) {
-				t.Errorf("vlan.getLocalVlanConfig()\ngot: %v\nwant: %v", local, tt.want)
+				t.Errorf("getLocalVlanConfig()\ngot: %v\nwant: %v", local, tt.want)
 			}
 		})
 	}
