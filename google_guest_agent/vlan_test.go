@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-agent/google_guest_agent/run"
@@ -87,6 +89,94 @@ func TestGetLocalVlanConfig(t *testing.T) {
 				if val != tt.want[i] {
 					t.Errorf("vlan.getLocalVlanConfig()\ngot: %v\nwant: %v", local, tt.want)
 				}
+			}
+		})
+	}
+}
+
+func TestUnmarshalIfaceJSON(t *testing.T) {
+	var tests = []struct {
+		name, data string
+		want       []InterfaceDescriptor
+	}{
+		{
+			name: "Empty data",
+			data: "[]",
+			want: []InterfaceDescriptor{},
+		},
+		{
+			name: "Unmarshal JSON Error",
+			data: "",
+		},
+		{
+			name: "Unmarshal single vlan interface",
+			data: `[{
+    "ifindex": 3,
+    "link": "ens4",
+    "ifname": "ens4.5",
+    "flags": [
+      "BROADCAST",
+      "MULTICAST"
+    ],
+    "mtu": 1460,
+    "qdisc": "noop",
+    "operstate": "DOWN",
+    "linkmode": "DEFAULT",
+    "group": "default",
+    "txqlen": 1000,
+    "link_type": "ether",
+    "address": "42:01:0a:00:04:02",
+    "broadcast": "ff:ff:ff:ff:ff:ff",
+    "promiscuity": 0,
+    "min_mtu": 0,
+    "max_mtu": 65535,
+    "linkinfo": {
+      "info_kind": "vlan",
+      "info_data": {
+        "protocol": "802.1Q",
+        "id": 5,
+        "flags": [
+          "REORDER_HDR"
+        ]
+      }
+    },
+    "inet6_addr_gen_mode": "eui64",
+    "num_tx_queues": 1,
+    "num_rx_queues": 1,
+    "gso_max_size": 65536,
+    "gso_max_segs": 65535
+  }
+]`,
+			want: []InterfaceDescriptor{
+				InterfaceDescriptor{
+					Ifname:  "ens4.5",
+					Link:    "ens4",
+					Address: "42:01:0a:00:04:02",
+					Flags:   []string{"BROADCAST", "MULTICAST"},
+					Mtu:     json.Number("1460"),
+					LinkInfo: LinkInfo{
+						InfoKind: "vlan",
+						InfoData: LinkInfoData{
+							Protocol: "802.1Q",
+							Id:       json.Number("5"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := unmarshalIfaceJSON([]byte(tt.data))
+			if err == nil && tt.want == nil {
+				t.Errorf("unmarshalIfaceJSON() expected an error")
+			}
+			if err != nil && tt.want != nil {
+				t.Errorf("unmarshalIfaceJSON() got an error: %v", err)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Did not parse expected interface data.\nGot:%v\nWant:%v", got, tt.want)
 			}
 		})
 	}

@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -24,6 +25,25 @@ import (
 
 type vlanInterface interface {
 	runWithOutput(ctx context.Context, name string, args ...string) *run.Result
+}
+
+type InterfaceDescriptor struct {
+	Ifname   string      `json:"ifname"`
+	Link     string      `json:"link"`
+	Address  string      `json:"address"`
+	Flags    []string    `json:"flags"`
+	LinkInfo LinkInfo    `json:"linkinfo"`
+	Mtu      json.Number `json:"mtu"`
+}
+
+type LinkInfo struct {
+	InfoKind string       `json:"info_kind"`
+	InfoData LinkInfoData `json:"info_data"`
+}
+
+type LinkInfoData struct {
+	Protocol string      `json:"protocol"`
+	Id       json.Number `json:"id"`
 }
 
 type vlan struct{}
@@ -55,21 +75,30 @@ func (v *vlan) removeVlanNic(ctx context.Context, vi vlanInterface) bool {
 
 func (v *vlan) getLocalVlanConfig(ctx context.Context, vi vlanInterface) ([]string, error) {
 	var res []string
-	args := fmt.Sprintf("link show vlan")
+	args := fmt.Sprintf("-d -j -6 link show")
 	out := vi.runWithOutput(ctx, "ip", strings.Split(args, " ")...)
 	if out.ExitCode != 0 {
 		return nil, error(out)
 	}
-	args = fmt.Sprintf("-6 link show vlan")
+	args = fmt.Sprintf("-6 -d link show")
 	outIpv6 := vi.runWithOutput(ctx, "ip", strings.Split(args, " ")...)
 	if outIpv6.ExitCode != 0 {
 		return nil, error(out)
 	}
 	allOut := fmt.Sprintf("%s\n%s", out.StdOut, outIpv6.StdOut)
 	for _, line := range strings.Split(allOut, "\n") {
-		if line != "" {
+		if line != "" && strings.Contains(line, "vlan") {
 			res = append(res, line)
 		}
 	}
 	return res, nil
+}
+
+func unmarshalIfaceJSON(data []byte) ([]InterfaceDescriptor, error) {
+	var ret []InterfaceDescriptor
+	err := json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
