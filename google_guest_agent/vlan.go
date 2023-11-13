@@ -53,43 +53,36 @@ func (v *vlan) vlanSupported(ctx context.Context, vi vlanInterface) bool {
 	return out.ExitCode == 0
 }
 
-func (v *vlan) configure(ctx context.Context) {
+// Configure finds VLAN NICs to add and remove from passed metadata.
+func (v *vlan) Configure(ctx context.Context) {
 
 }
 
-func (v *vlan) findAdditions(ctx context.Context, vi vlanInterface) []string {
+func (v *vlan) findAdditions(ctx context.Context, vi vlanInterface) []InterfaceDescriptor {
 	return nil
 }
 
-func (v *vlan) findRemovals(ctx context.Context, vi vlanInterface) []string {
+func (v *vlan) findRemovals(ctx context.Context, vi vlanInterface) []InterfaceDescriptor {
 	return nil
 }
 
-func (v *vlan) addVlanNic(ctx context.Context, vi vlanInterface) bool {
-	return false
+func (v *vlan) addVlanNic(ctx context.Context, vi vlanInterface) error {
+	return nil
 }
 
-func (v *vlan) removeVlanNic(ctx context.Context, vi vlanInterface) bool {
-	return false
+func (v *vlan) removeVlanNic(ctx context.Context, vi vlanInterface) error {
+	return nil
 }
 
-func (v *vlan) getLocalVlanConfig(ctx context.Context, vi vlanInterface) ([]string, error) {
-	var res []string
+func (v *vlan) getLocalVlanConfig(ctx context.Context, vi vlanInterface) ([]InterfaceDescriptor, error) {
 	args := fmt.Sprintf("-d -j -6 link show")
 	out := vi.runWithOutput(ctx, "ip", strings.Split(args, " ")...)
 	if out.ExitCode != 0 {
 		return nil, error(out)
 	}
-	args = fmt.Sprintf("-6 -d link show")
-	outIpv6 := vi.runWithOutput(ctx, "ip", strings.Split(args, " ")...)
-	if outIpv6.ExitCode != 0 {
-		return nil, error(out)
-	}
-	allOut := fmt.Sprintf("%s\n%s", out.StdOut, outIpv6.StdOut)
-	for _, line := range strings.Split(allOut, "\n") {
-		if line != "" && strings.Contains(line, "vlan") {
-			res = append(res, line)
-		}
+	res, err := unmarshalIfaceJSON([]byte(out.StdOut))
+	if err != nil {
+		return nil, err
 	}
 	return res, nil
 }
