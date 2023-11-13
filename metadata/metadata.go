@@ -154,11 +154,19 @@ type NetworkInterfaces struct {
 
 // VlanNetworkInterfaces describes the instances vlan network interfaces configurations.
 type VlanNetworkInterfaces struct {
-	ForwardedIps []string
-	Mac          string
-	Ip           string
-	Mtu          json.Number
-	Vlan         json.Number
+	ForwardedIps      []string
+	AccessConfigs     []string
+	IPAliases         []string
+	TargetInstanceIps []string
+	DNSServers        string
+	Mac               string
+	Ip                string
+	Gateway           string
+	Network           string
+	ParentInterface   string
+	Subnetmask        string
+	Mtu               json.Number
+	Vlan              json.Number
 }
 
 // Project describes the projects instance's attributes.
