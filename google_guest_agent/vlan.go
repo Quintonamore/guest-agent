@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/guest-agent/google_guest_agent/run"
+	"github.com/GoogleCloudPlatform/guest-agent/metadata"
 	"github.com/GoogleCloudPlatform/guest-logging-go/logger"
 )
 
@@ -50,23 +51,36 @@ type LinkInfoData struct {
 type vlan struct{}
 
 // Configure finds VLAN NICs to add and remove from passed metadata.
-func (v *vlan) Configure(ctx context.Context, vi vlanInterface) {
+func (v *vlan) Configure(ctx context.Context, vMeta []metadata.VlanNetworkInterfaces, vi vlanInterface) {
 	if vlanNotSupported(ctx, vi) {
 		logger.Infof("Module 802.1Q is not installed. Skipping VLAN NIC configuration.")
 		return
 	}
-
+	local, err := getLocalVlanConfig(ctx, vi)
+	if err != nil {
+		logger.Errorf("getting local VLAN NIC config failed: %v", err)
+		return
+	}
+	vlanNicsToAdd, vlanNicsToRemove := vlanNicsDiff(ctx, local, vMeta, vi)
+	for _, vnic := range vlanNicsToAdd {
+		addVlanNic(ctx, vnic, vi)
+	}
+	for _, vnic := range vlanNicsToRemove {
+		removeVlanNic(ctx, vnic, vi)
+	}
 }
 
-func vlanNicsToAdd(ctx context.Context, vi vlanInterface) []InterfaceDescriptor {
-	return nil
+func vlanNicsDiff(ctx context.Context, local []InterfaceDescriptor, vMeta []metadata.VlanNetworkInterfaces, vi vlanInterface) (vlanNicsToAdd []metadata.VlanNetworkInterfaces, vlanNicsToRemove []InterfaceDescriptor) {
+	/*
+		for _, nic := range local {
+		}
+		for _, nic := range vMeta {
+		}
+	*/
+	return
 }
 
-func vlanNicsToRemove(ctx context.Context, vi vlanInterface) []InterfaceDescriptor {
-	return nil
-}
-
-func addVlanNic(ctx context.Context, iface InterfaceDescriptor, vi vlanInterface) error {
+func addVlanNic(ctx context.Context, iface metadata.VlanNetworkInterfaces, vi vlanInterface) error {
 	return nil
 }
 
