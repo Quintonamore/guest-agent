@@ -1,4 +1,4 @@
-package main
+package vlan
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/GoogleCloudPlatform/guest-agent/google_guest_agent/run"
+	"github.com/GoogleCloudPlatform/guest-agent/metadata"
 )
 
 type vlanTesting struct{}
@@ -180,6 +181,22 @@ func TestUnmarshalIfaceJSON(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Did not parse expected interface data.\nGot:%v\nWant:%v", got, tt.want)
 			}
+		})
+	}
+}
+
+func testVlanNicsDiff(t *testing.T) {
+	var tests = []struct {
+		name             string
+		local            []InterfaceDescriptor
+		metadata         []metadata.VlanNetworkInterfaces
+		wantAddLength    int
+		wantRemoveLength int
+	}{}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
 		})
 	}
 }

@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package main
+package vlan
 
 import (
 	"context"
@@ -71,12 +71,31 @@ func (v *vlan) Configure(ctx context.Context, vMeta []metadata.VlanNetworkInterf
 }
 
 func vlanNicsDiff(ctx context.Context, local []InterfaceDescriptor, vMeta []metadata.VlanNetworkInterfaces, vi vlanInterface) (vlanNicsToAdd []metadata.VlanNetworkInterfaces, vlanNicsToRemove []InterfaceDescriptor) {
-	/*
-		for _, nic := range local {
+	ref := make(map[string]bool)
+	lMap := make(map[string]InterfaceDescriptor)
+	mMap := make(map[string]metadata.VlanNetworkInterfaces)
+	for _, nic := range local {
+		id := fmt.Sprintf("%s%d", nic.Link, nic.LinkInfo.InfoData.Id)
+		lMap[id] = nic
+		ref[id] = true
+	}
+	for _, nic := range vMeta {
+		id := fmt.Sprintf("%s%d", nic.ParentInterface, nic.Vlan)
+		mMap[id] = nic
+		ref[id] = true
+	}
+	for _, id := range ref {
+		l, inLocal := lMap[id]
+		m, inMetadata := mMap[id]
+		// VLAN exists locally but not in metadata; remove
+		if inLocal && !inMetadata {
+			vlanNicsToRemove := append(vlanNicsToRemove, l)
 		}
-		for _, nic := range vMeta {
+		// VLAN exists in metadata but not locally; add
+		if !inLocal && inMetadata {
+			vlanNicsToAdd := append(vlanNicsToAdd, m)
 		}
-	*/
+	}
 	return
 }
 
